@@ -22,3 +22,5 @@ Atomic returns Expression:
 	{StringConstant} value=STRING |
 	{BoolConstant} value=('true' | 'false') |
 	{VariableRef} variable=[Variable];
+	
+	/* */
