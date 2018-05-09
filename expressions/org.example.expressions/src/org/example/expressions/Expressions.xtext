@@ -15,9 +15,10 @@ EvalExpression:
 	'eval' expression=Expression;
 
 Expression:
-	{IntConstant} value=INT
-	| {StringConstant} value=STRING
-	| {BoolConstant} value=('true' | 'false')
-	| {VariableRef} variable=[Variable]
-	//|{Plus} left=Expression '+' right=Expression
-	;
+	{Plus} left=Atomic ('+' right=Expression)?;
+
+Atomic returns Expression:
+	{IntConstant} value=INT |
+	{StringConstant} value=STRING |
+	{BoolConstant} value=('true' | 'false') |
+	{VariableRef} variable=[Variable];
