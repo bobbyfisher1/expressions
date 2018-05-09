@@ -14,8 +14,13 @@ import org.eclipse.xtext.xbase.lib.IterableExtensions;
 import org.eclipse.xtext.xbase.lib.ObjectExtensions;
 import org.eclipse.xtext.xbase.lib.Procedures.Procedure1;
 import org.example.expressions.expressions.AbstractElement;
+import org.example.expressions.expressions.BoolConstant;
 import org.example.expressions.expressions.Expression;
 import org.example.expressions.expressions.ExpressionsModel;
+import org.example.expressions.expressions.IntConstant;
+import org.example.expressions.expressions.Minus;
+import org.example.expressions.expressions.Plus;
+import org.example.expressions.expressions.StringConstant;
 import org.example.expressions.expressions.VariableRef;
 import org.example.expressions.tests.ExpressionsInjectorProvider;
 import org.junit.Assert;
@@ -49,6 +54,24 @@ public class ExpressionsParsingTest {
   }
   
   @Test
+  public void testEvalBooleanConstant() {
+    try {
+      Assert.assertNotNull(this._parseHelper.parse("eval true"));
+    } catch (Throwable _e) {
+      throw Exceptions.sneakyThrow(_e);
+    }
+  }
+  
+  @Test
+  public void testEvalStringConstant() {
+    try {
+      Assert.assertNotNull(this._parseHelper.parse("eval \"a string\""));
+    } catch (Throwable _e) {
+      throw Exceptions.sneakyThrow(_e);
+    }
+  }
+  
+  @Test
   public void testVariableReference() {
     try {
       StringConcatenation _builder = new StringConcatenation();
@@ -65,5 +88,130 @@ public class ExpressionsParsingTest {
     } catch (Throwable _e) {
       throw Exceptions.sneakyThrow(_e);
     }
+  }
+  
+  private String stringRepr(final Expression e) {
+    String _switchResult = null;
+    boolean _matched = false;
+    if (e instanceof Plus) {
+      _matched=true;
+      StringConcatenation _builder = new StringConcatenation();
+      _builder.append("(");
+      String _stringRepr = this.stringRepr(((Plus)e).getLeft());
+      _builder.append(_stringRepr);
+      _builder.append(" + ");
+      String _stringRepr_1 = this.stringRepr(((Plus)e).getRight());
+      _builder.append(_stringRepr_1);
+      _builder.append(")");
+      _switchResult = _builder.toString();
+    }
+    if (!_matched) {
+      if (e instanceof Minus) {
+        _matched=true;
+        StringConcatenation _builder = new StringConcatenation();
+        _builder.append("(");
+        String _stringRepr = this.stringRepr(((Minus)e).getLeft());
+        _builder.append(_stringRepr);
+        _builder.append(" - ");
+        String _stringRepr_1 = this.stringRepr(((Minus)e).getRight());
+        _builder.append(_stringRepr_1);
+        _builder.append(")");
+        _switchResult = _builder.toString();
+      }
+    }
+    if (!_matched) {
+      if (e instanceof IntConstant) {
+        _matched=true;
+        StringConcatenation _builder = new StringConcatenation();
+        int _value = ((IntConstant)e).getValue();
+        _builder.append(_value);
+        _switchResult = _builder.toString();
+      }
+    }
+    if (!_matched) {
+      if (e instanceof StringConstant) {
+        _matched=true;
+        StringConcatenation _builder = new StringConcatenation();
+        String _value = ((StringConstant)e).getValue();
+        _builder.append(_value);
+        _switchResult = _builder.toString();
+      }
+    }
+    if (!_matched) {
+      if (e instanceof BoolConstant) {
+        _matched=true;
+        StringConcatenation _builder = new StringConcatenation();
+        String _value = ((BoolConstant)e).getValue();
+        _builder.append(_value);
+        _switchResult = _builder.toString();
+      }
+    }
+    if (!_matched) {
+      if (e instanceof VariableRef) {
+        _matched=true;
+        StringConcatenation _builder = new StringConcatenation();
+        String _name = ((VariableRef)e).getVariable().getName();
+        _builder.append(_name);
+        _switchResult = _builder.toString();
+      }
+    }
+    return _switchResult.toString();
+  }
+  
+  private ExpressionsModel assertRepr(final CharSequence input, final CharSequence expected) {
+    try {
+      ExpressionsModel _parse = this._parseHelper.parse(("eval " + input));
+      final Procedure1<ExpressionsModel> _function = (ExpressionsModel it) -> {
+        Assert.assertEquals(expected, this.stringRepr(IterableExtensions.<AbstractElement>last(it.getElements()).getExpression()));
+      };
+      return ObjectExtensions.<ExpressionsModel>operator_doubleArrow(_parse, _function);
+    } catch (Throwable _e) {
+      throw Exceptions.sneakyThrow(_e);
+    }
+  }
+  
+  @Test
+  public void testPlus() {
+    this.assertRepr("10 + 5 + 1 + 2", "(((10 + 5) + 1) + 2)");
+  }
+  
+  @Test
+  public void testParenthesis() {
+    try {
+      Expression _expression = IterableExtensions.<AbstractElement>head(this._parseHelper.parse("eval (10)").getElements()).getExpression();
+      Assert.assertEquals(10, ((IntConstant) _expression).getValue());
+    } catch (Throwable _e) {
+      throw Exceptions.sneakyThrow(_e);
+    }
+  }
+  
+  @Test
+  public void testPlusWithParenthesis() {
+    this.assertRepr("( 10 + 5 ) + ( 1 +2)", "((10 + 5) + (1 + 2))");
+  }
+  
+  @Test
+  public void testMinus() {
+    this.assertRepr("1-2-3", "((1 - 2) - 3)");
+  }
+  
+  @Test
+  public void testMinusWithParenthesis() {
+    this.assertRepr("1-(19-4)", "(1 - (19 - 4))");
+  }
+  
+  @Test
+  public void test_minus_and_plus() {
+    this.assertRepr("1-4+9", "((1 - 4) + 9)");
+  }
+  
+  @Test
+  public void test_m_and_p_with_parenthesis() {
+    this.assertRepr("1+(5-9)", "(1 + (5 - 9))");
+  }
+  
+  @Test
+  public void bla() {
+    this.assertRepr("true + \'treu\'", "(true + treu)");
   }
 }

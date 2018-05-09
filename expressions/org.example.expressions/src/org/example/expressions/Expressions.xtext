@@ -15,12 +15,13 @@ EvalExpression:
 	'eval' expression=Expression;
 
 Expression:
-	{Plus} left=Atomic ('+' right=Expression)?;
+//	Atomic ({Plus.left=current} '+' right=Expression)? ; 	//right recursive
+//	Atomic ({Plus.left=current} '+' right=Atomic)*; //left recursive
+	Atomic (({Plus.left=current} '+' | {Minus.left=current} '-') right=Atomic)*;
 
 Atomic returns Expression:
-	{IntConstant} value=INT |
-	{StringConstant} value=STRING |
-	{BoolConstant} value=('true' | 'false') |
-	{VariableRef} variable=[Variable];
-	
-	/* */
+	'(' Expression ')' //
+	| {IntConstant} value=INT //
+	| {StringConstant} value=STRING // 
+	| {BoolConstant} value=('true' | 'false') // 
+	| {VariableRef} variable=[Variable]; //

@@ -7,12 +7,18 @@ import com.google.inject.Inject
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
 import org.eclipse.xtext.testing.util.ParseHelper
+import org.example.expressions.expressions.BoolConstant
+import org.example.expressions.expressions.Expression
 import org.example.expressions.expressions.ExpressionsModel
-import org.junit.Assert
+import org.example.expressions.expressions.IntConstant
+import org.example.expressions.expressions.Minus
+import org.example.expressions.expressions.Plus
+import org.example.expressions.expressions.StringConstant
+import org.example.expressions.expressions.VariableRef
 import org.junit.Test
 import org.junit.runner.RunWith
+
 import static extension org.junit.Assert.*
-import org.example.expressions.expressions.VariableRef
 
 @RunWith(XtextRunner)
 @InjectWith(ExpressionsInjectorProvider)
@@ -28,6 +34,14 @@ class ExpressionsParsingTest {
 		"var i = 10".parse.assertNotNull
 	}
 
+	@Test def void testEvalBooleanConstant() {
+		"eval true".parse.assertNotNull
+	}
+
+	@Test def void testEvalStringConstant() {
+		'eval "a string"'.parse.assertNotNull
+	}
+
 	@Test def void testVariableReference() {
 
 		'''
@@ -36,5 +50,52 @@ class ExpressionsParsingTest {
 		'''.parse => [
 			(elements.last.expression as VariableRef).variable.assertSame(elements.head)
 		]
+	}
+
+	def private String stringRepr(Expression e) {
+		switch (e) {
+			Plus: '''(«e.left.stringRepr» + «e.right.stringRepr»)'''
+			Minus: '''(«e.left.stringRepr» - «e.right.stringRepr»)'''
+			IntConstant: '''«e.value»'''
+			StringConstant: '''«e.value»'''
+			BoolConstant: '''«e.value»'''
+			VariableRef: '''«e.variable.name»'''
+		}.toString
+	}
+
+	def private assertRepr(CharSequence input, CharSequence expected) {
+		("eval " + input).parse => [expected.assertEquals(elements.last.expression.stringRepr)]
+	}
+
+	@Test def void testPlus() {
+		"10 + 5 + 1 + 2".assertRepr("(((10 + 5) + 1) + 2)")
+	}
+
+	@Test def void testParenthesis() {
+		10.assertEquals(("eval (10)".parse.elements.head.expression as IntConstant).value)
+	}
+
+	@Test def void testPlusWithParenthesis() {
+		"( 10 + 5 ) + ( 1 +2)".assertRepr("((10 + 5) + (1 + 2))")
+	}
+
+	@Test def void testMinus() {
+		"1-2-3".assertRepr("((1 - 2) - 3)")
+	}
+
+	@Test def void testMinusWithParenthesis() {
+		"1-(19-4)".assertRepr("(1 - (19 - 4))")
+	}
+
+	@Test def void test_minus_and_plus() {
+		"1-4+9".assertRepr("((1 - 4) + 9)")
+	}
+
+	@Test def void test_m_and_p_with_parenthesis() {
+		"1+(5-9)".assertRepr("(1 + (5 - 9))")
+	}
+
+	@Test def void bla() {
+		"true + 'treu'".assertRepr("(true + treu)")
 	}
 }

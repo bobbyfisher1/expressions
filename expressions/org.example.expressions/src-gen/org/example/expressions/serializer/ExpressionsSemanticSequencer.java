@@ -19,6 +19,8 @@ import org.example.expressions.expressions.EvalExpression;
 import org.example.expressions.expressions.ExpressionsModel;
 import org.example.expressions.expressions.ExpressionsPackage;
 import org.example.expressions.expressions.IntConstant;
+import org.example.expressions.expressions.Minus;
+import org.example.expressions.expressions.Plus;
 import org.example.expressions.expressions.StringConstant;
 import org.example.expressions.expressions.Variable;
 import org.example.expressions.expressions.VariableRef;
@@ -39,7 +41,7 @@ public class ExpressionsSemanticSequencer extends AbstractDelegatingSemanticSequ
 		if (epackage == ExpressionsPackage.eINSTANCE)
 			switch (semanticObject.eClass().getClassifierID()) {
 			case ExpressionsPackage.BOOL_CONSTANT:
-				sequence_Expression(context, (BoolConstant) semanticObject); 
+				sequence_Atomic(context, (BoolConstant) semanticObject); 
 				return; 
 			case ExpressionsPackage.EVAL_EXPRESSION:
 				sequence_EvalExpression(context, (EvalExpression) semanticObject); 
@@ -48,21 +50,105 @@ public class ExpressionsSemanticSequencer extends AbstractDelegatingSemanticSequ
 				sequence_ExpressionsModel(context, (ExpressionsModel) semanticObject); 
 				return; 
 			case ExpressionsPackage.INT_CONSTANT:
-				sequence_Expression(context, (IntConstant) semanticObject); 
+				sequence_Atomic(context, (IntConstant) semanticObject); 
+				return; 
+			case ExpressionsPackage.MINUS:
+				sequence_Expression(context, (Minus) semanticObject); 
+				return; 
+			case ExpressionsPackage.PLUS:
+				sequence_Expression(context, (Plus) semanticObject); 
 				return; 
 			case ExpressionsPackage.STRING_CONSTANT:
-				sequence_Expression(context, (StringConstant) semanticObject); 
+				sequence_Atomic(context, (StringConstant) semanticObject); 
 				return; 
 			case ExpressionsPackage.VARIABLE:
 				sequence_Variable(context, (Variable) semanticObject); 
 				return; 
 			case ExpressionsPackage.VARIABLE_REF:
-				sequence_Expression(context, (VariableRef) semanticObject); 
+				sequence_Atomic(context, (VariableRef) semanticObject); 
 				return; 
 			}
 		if (errorAcceptor != null)
 			errorAcceptor.accept(diagnosticProvider.createInvalidContextOrTypeDiagnostic(semanticObject, context));
 	}
+	
+	/**
+	 * Contexts:
+	 *     Expression returns BoolConstant
+	 *     Expression.Plus_1_0_0_0 returns BoolConstant
+	 *     Expression.Minus_1_0_1_0 returns BoolConstant
+	 *     Atomic returns BoolConstant
+	 *
+	 * Constraint:
+	 *     (value='true' | value='false')
+	 */
+	protected void sequence_Atomic(ISerializationContext context, BoolConstant semanticObject) {
+		genericSequencer.createSequence(context, semanticObject);
+	}
+	
+	
+	/**
+	 * Contexts:
+	 *     Expression returns IntConstant
+	 *     Expression.Plus_1_0_0_0 returns IntConstant
+	 *     Expression.Minus_1_0_1_0 returns IntConstant
+	 *     Atomic returns IntConstant
+	 *
+	 * Constraint:
+	 *     value=INT
+	 */
+	protected void sequence_Atomic(ISerializationContext context, IntConstant semanticObject) {
+		if (errorAcceptor != null) {
+			if (transientValues.isValueTransient(semanticObject, ExpressionsPackage.Literals.INT_CONSTANT__VALUE) == ValueTransient.YES)
+				errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, ExpressionsPackage.Literals.INT_CONSTANT__VALUE));
+		}
+		SequenceFeeder feeder = createSequencerFeeder(context, semanticObject);
+		feeder.accept(grammarAccess.getAtomicAccess().getValueINTTerminalRuleCall_1_1_0(), semanticObject.getValue());
+		feeder.finish();
+	}
+	
+	
+	/**
+	 * Contexts:
+	 *     Expression returns StringConstant
+	 *     Expression.Plus_1_0_0_0 returns StringConstant
+	 *     Expression.Minus_1_0_1_0 returns StringConstant
+	 *     Atomic returns StringConstant
+	 *
+	 * Constraint:
+	 *     value=STRING
+	 */
+	protected void sequence_Atomic(ISerializationContext context, StringConstant semanticObject) {
+		if (errorAcceptor != null) {
+			if (transientValues.isValueTransient(semanticObject, ExpressionsPackage.Literals.STRING_CONSTANT__VALUE) == ValueTransient.YES)
+				errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, ExpressionsPackage.Literals.STRING_CONSTANT__VALUE));
+		}
+		SequenceFeeder feeder = createSequencerFeeder(context, semanticObject);
+		feeder.accept(grammarAccess.getAtomicAccess().getValueSTRINGTerminalRuleCall_2_1_0(), semanticObject.getValue());
+		feeder.finish();
+	}
+	
+	
+	/**
+	 * Contexts:
+	 *     Expression returns VariableRef
+	 *     Expression.Plus_1_0_0_0 returns VariableRef
+	 *     Expression.Minus_1_0_1_0 returns VariableRef
+	 *     Atomic returns VariableRef
+	 *
+	 * Constraint:
+	 *     variable=[Variable|ID]
+	 */
+	protected void sequence_Atomic(ISerializationContext context, VariableRef semanticObject) {
+		if (errorAcceptor != null) {
+			if (transientValues.isValueTransient(semanticObject, ExpressionsPackage.Literals.VARIABLE_REF__VARIABLE) == ValueTransient.YES)
+				errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, ExpressionsPackage.Literals.VARIABLE_REF__VARIABLE));
+		}
+		SequenceFeeder feeder = createSequencerFeeder(context, semanticObject);
+		feeder.accept(grammarAccess.getAtomicAccess().getVariableVariableIDTerminalRuleCall_4_1_0_1(), semanticObject.eGet(ExpressionsPackage.Literals.VARIABLE_REF__VARIABLE, false));
+		feeder.finish();
+	}
+	
 	
 	/**
 	 * Contexts:
@@ -85,66 +171,48 @@ public class ExpressionsSemanticSequencer extends AbstractDelegatingSemanticSequ
 	
 	/**
 	 * Contexts:
-	 *     Expression returns BoolConstant
+	 *     Expression returns Minus
+	 *     Expression.Plus_1_0_0_0 returns Minus
+	 *     Expression.Minus_1_0_1_0 returns Minus
+	 *     Atomic returns Minus
 	 *
 	 * Constraint:
-	 *     (value='true' | value='false')
+	 *     (left=Expression_Minus_1_0_1_0 right=Atomic)
 	 */
-	protected void sequence_Expression(ISerializationContext context, BoolConstant semanticObject) {
-		genericSequencer.createSequence(context, semanticObject);
-	}
-	
-	
-	/**
-	 * Contexts:
-	 *     Expression returns IntConstant
-	 *
-	 * Constraint:
-	 *     value=INT
-	 */
-	protected void sequence_Expression(ISerializationContext context, IntConstant semanticObject) {
+	protected void sequence_Expression(ISerializationContext context, Minus semanticObject) {
 		if (errorAcceptor != null) {
-			if (transientValues.isValueTransient(semanticObject, ExpressionsPackage.Literals.INT_CONSTANT__VALUE) == ValueTransient.YES)
-				errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, ExpressionsPackage.Literals.INT_CONSTANT__VALUE));
+			if (transientValues.isValueTransient(semanticObject, ExpressionsPackage.Literals.MINUS__LEFT) == ValueTransient.YES)
+				errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, ExpressionsPackage.Literals.MINUS__LEFT));
+			if (transientValues.isValueTransient(semanticObject, ExpressionsPackage.Literals.MINUS__RIGHT) == ValueTransient.YES)
+				errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, ExpressionsPackage.Literals.MINUS__RIGHT));
 		}
 		SequenceFeeder feeder = createSequencerFeeder(context, semanticObject);
-		feeder.accept(grammarAccess.getExpressionAccess().getValueINTTerminalRuleCall_0_1_0(), semanticObject.getValue());
+		feeder.accept(grammarAccess.getExpressionAccess().getMinusLeftAction_1_0_1_0(), semanticObject.getLeft());
+		feeder.accept(grammarAccess.getExpressionAccess().getRightAtomicParserRuleCall_1_1_0(), semanticObject.getRight());
 		feeder.finish();
 	}
 	
 	
 	/**
 	 * Contexts:
-	 *     Expression returns StringConstant
+	 *     Expression returns Plus
+	 *     Expression.Plus_1_0_0_0 returns Plus
+	 *     Expression.Minus_1_0_1_0 returns Plus
+	 *     Atomic returns Plus
 	 *
 	 * Constraint:
-	 *     value=STRING
+	 *     (left=Expression_Plus_1_0_0_0 right=Atomic)
 	 */
-	protected void sequence_Expression(ISerializationContext context, StringConstant semanticObject) {
+	protected void sequence_Expression(ISerializationContext context, Plus semanticObject) {
 		if (errorAcceptor != null) {
-			if (transientValues.isValueTransient(semanticObject, ExpressionsPackage.Literals.STRING_CONSTANT__VALUE) == ValueTransient.YES)
-				errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, ExpressionsPackage.Literals.STRING_CONSTANT__VALUE));
+			if (transientValues.isValueTransient(semanticObject, ExpressionsPackage.Literals.PLUS__LEFT) == ValueTransient.YES)
+				errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, ExpressionsPackage.Literals.PLUS__LEFT));
+			if (transientValues.isValueTransient(semanticObject, ExpressionsPackage.Literals.PLUS__RIGHT) == ValueTransient.YES)
+				errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, ExpressionsPackage.Literals.PLUS__RIGHT));
 		}
 		SequenceFeeder feeder = createSequencerFeeder(context, semanticObject);
-		feeder.accept(grammarAccess.getExpressionAccess().getValueSTRINGTerminalRuleCall_1_1_0(), semanticObject.getValue());
-		feeder.finish();
-	}
-	
-	
-	/**
-	 * Contexts:
-	 *     Expression returns VariableRef
-	 *
-	 * Constraint:
-	 *     variable=[Variable|ID]
-	 */
-	protected void sequence_Expression(ISerializationContext context, VariableRef semanticObject) {
-		if (errorAcceptor != null) {
-			if (transientValues.isValueTransient(semanticObject, ExpressionsPackage.Literals.VARIABLE_REF__VARIABLE) == ValueTransient.YES)
-				errorAcceptor.accept(diagnosticProvider.createFeatureValueMissing(semanticObject, ExpressionsPackage.Literals.VARIABLE_REF__VARIABLE));
-		}
-		SequenceFeeder feeder = createSequencerFeeder(context, semanticObject);
-		feeder.accept(grammarAccess.getExpressionAccess().getVariableVariableIDTerminalRuleCall_3_1_0_1(), semanticObject.eGet(ExpressionsPackage.Literals.VARIABLE_REF__VARIABLE, false));
+		feeder.accept(grammarAccess.getExpressionAccess().getPlusLeftAction_1_0_0_0(), semanticObject.getLeft());
+		feeder.accept(grammarAccess.getExpressionAccess().getRightAtomicParserRuleCall_1_1_0(), semanticObject.getRight());
 		feeder.finish();
 	}
 	

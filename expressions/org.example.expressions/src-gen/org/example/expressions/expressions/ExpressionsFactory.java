@@ -69,6 +69,24 @@ public interface ExpressionsFactory extends EFactory
   Expression createExpression();
 
   /**
+   * Returns a new object of class '<em>Plus</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Plus</em>'.
+   * @generated
+   */
+  Plus createPlus();
+
+  /**
+   * Returns a new object of class '<em>Minus</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Minus</em>'.
+   * @generated
+   */
+  Minus createMinus();
+
+  /**
    * Returns a new object of class '<em>Int Constant</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
