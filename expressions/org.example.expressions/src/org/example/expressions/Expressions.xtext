@@ -1,0 +1,23 @@
+grammar org.example.expressions.Expressions with org.eclipse.xtext.common.Terminals
+
+generate expressions "http://www.example.org/expressions/Expressions"
+
+ExpressionsModel:
+	elements+=AbstractElement*;
+
+AbstractElement:
+	Variable | EvalExpression;
+
+Variable:
+	'var' name=ID '=' expression=Expression;
+
+EvalExpression:
+	'eval' expression=Expression;
+
+Expression:
+	{IntConstant} value=INT
+	| {StringConstant} value=STRING
+	| {BoolConstant} value=('true' | 'false')
+	| {VariableRef} variable=[Variable]
+	//|{Plus} left=Expression '+' right=Expression
+	;
