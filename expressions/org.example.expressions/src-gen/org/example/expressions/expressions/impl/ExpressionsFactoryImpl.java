@@ -70,8 +70,14 @@ public class ExpressionsFactoryImpl extends EFactoryImpl implements ExpressionsF
       case ExpressionsPackage.VARIABLE: return createVariable();
       case ExpressionsPackage.EVAL_EXPRESSION: return createEvalExpression();
       case ExpressionsPackage.EXPRESSION: return createExpression();
+      case ExpressionsPackage.OR: return createOr();
+      case ExpressionsPackage.AND: return createAnd();
+      case ExpressionsPackage.EQUALITY: return createEquality();
+      case ExpressionsPackage.COMPARISON: return createComparison();
       case ExpressionsPackage.PLUS: return createPlus();
       case ExpressionsPackage.MINUS: return createMinus();
+      case ExpressionsPackage.MUL_OR_DIV: return createMulOrDiv();
+      case ExpressionsPackage.NOT: return createNot();
       case ExpressionsPackage.INT_CONSTANT: return createIntConstant();
       case ExpressionsPackage.STRING_CONSTANT: return createStringConstant();
       case ExpressionsPackage.BOOL_CONSTANT: return createBoolConstant();
@@ -141,6 +147,50 @@ public class ExpressionsFactoryImpl extends EFactoryImpl implements ExpressionsF
    * <!-- end-user-doc -->
    * @generated
    */
+  public Or createOr()
+  {
+    OrImpl or = new OrImpl();
+    return or;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public And createAnd()
+  {
+    AndImpl and = new AndImpl();
+    return and;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public Equality createEquality()
+  {
+    EqualityImpl equality = new EqualityImpl();
+    return equality;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public Comparison createComparison()
+  {
+    ComparisonImpl comparison = new ComparisonImpl();
+    return comparison;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public Plus createPlus()
   {
     PlusImpl plus = new PlusImpl();
@@ -156,6 +206,28 @@ public class ExpressionsFactoryImpl extends EFactoryImpl implements ExpressionsF
   {
     MinusImpl minus = new MinusImpl();
     return minus;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public MulOrDiv createMulOrDiv()
+  {
+    MulOrDivImpl mulOrDiv = new MulOrDivImpl();
+    return mulOrDiv;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public Not createNot()
+  {
+    NotImpl not = new NotImpl();
+    return not;
   }
 
   /**

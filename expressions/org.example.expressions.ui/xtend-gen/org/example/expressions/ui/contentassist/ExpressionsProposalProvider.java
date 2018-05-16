@@ -3,6 +3,16 @@
  */
 package org.example.expressions.ui.contentassist;
 
+import java.util.function.Consumer;
+import javax.inject.Inject;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.xtext.Assignment;
+import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext;
+import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor;
+import org.eclipse.xtext.xbase.lib.Extension;
+import org.example.expressions.ExpressionsModelUtil;
+import org.example.expressions.expressions.Expression;
+import org.example.expressions.expressions.Variable;
 import org.example.expressions.ui.contentassist.AbstractExpressionsProposalProvider;
 
 /**
@@ -11,4 +21,22 @@ import org.example.expressions.ui.contentassist.AbstractExpressionsProposalProvi
  */
 @SuppressWarnings("all")
 public class ExpressionsProposalProvider extends AbstractExpressionsProposalProvider {
+  @Inject
+  @Extension
+  private ExpressionsModelUtil _expressionsModelUtil;
+  
+  @Override
+  public void completeAtomic_Variable(final EObject elem, final Assignment assignment, final ContentAssistContext context, final ICompletionProposalAcceptor acceptor) {
+    if ((elem instanceof Expression)) {
+      final Consumer<Variable> _function = (Variable variable) -> {
+        String _name = variable.getName();
+        String _name_1 = variable.getName();
+        String _plus = (_name_1 + " - Variable");
+        acceptor.accept(
+          this.createCompletionProposal(_name, _plus, 
+            null, context));
+      };
+      this._expressionsModelUtil.variablesDefinedBefore(((Expression)elem)).forEach(_function);
+    }
+  }
 }

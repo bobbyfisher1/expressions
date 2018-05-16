@@ -3,6 +3,13 @@
  */
 package org.example.expressions.validation;
 
+import com.google.inject.Inject;
+import org.eclipse.xtext.validation.Check;
+import org.eclipse.xtext.xbase.lib.Extension;
+import org.example.expressions.ExpressionsModelUtil;
+import org.example.expressions.expressions.ExpressionsPackage;
+import org.example.expressions.expressions.Variable;
+import org.example.expressions.expressions.VariableRef;
 import org.example.expressions.validation.AbstractExpressionsValidator;
 
 /**
@@ -12,4 +19,25 @@ import org.example.expressions.validation.AbstractExpressionsValidator;
  */
 @SuppressWarnings("all")
 public class ExpressionsValidator extends AbstractExpressionsValidator {
+  protected final static String ISSUE_CODE_PREFIX = "org.example.expressions.";
+  
+  public final static String FORWARD_REFERENCE = (ExpressionsValidator.ISSUE_CODE_PREFIX + "ForwardReference");
+  
+  @Inject
+  @Extension
+  private ExpressionsModelUtil _expressionsModelUtil;
+  
+  @Check
+  public void checkForwardReference(final VariableRef varRef) {
+    final Variable variable = varRef.getVariable();
+    boolean _isVariableDefinedBefore = this._expressionsModelUtil.isVariableDefinedBefore(varRef);
+    boolean _not = (!_isVariableDefinedBefore);
+    if (_not) {
+      String _name = variable.getName();
+      String _plus = ("variable forward reference not allowed: \'" + _name);
+      String _plus_1 = (_plus + "\'");
+      this.error(_plus_1, 
+        ExpressionsPackage.eINSTANCE.getVariableRef_Variable(), ExpressionsValidator.FORWARD_REFERENCE, variable.getName());
+    }
+  }
 }

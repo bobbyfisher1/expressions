@@ -7,11 +7,17 @@ import com.google.inject.Inject
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
 import org.eclipse.xtext.testing.util.ParseHelper
+import org.example.expressions.expressions.And
 import org.example.expressions.expressions.BoolConstant
+import org.example.expressions.expressions.Comparison
+import org.example.expressions.expressions.Equality
 import org.example.expressions.expressions.Expression
 import org.example.expressions.expressions.ExpressionsModel
 import org.example.expressions.expressions.IntConstant
 import org.example.expressions.expressions.Minus
+import org.example.expressions.expressions.MulOrDiv
+import org.example.expressions.expressions.Not
+import org.example.expressions.expressions.Or
 import org.example.expressions.expressions.Plus
 import org.example.expressions.expressions.StringConstant
 import org.example.expressions.expressions.VariableRef
@@ -56,6 +62,12 @@ class ExpressionsParsingTest {
 		switch (e) {
 			Plus: '''(«e.left.stringRepr» + «e.right.stringRepr»)'''
 			Minus: '''(«e.left.stringRepr» - «e.right.stringRepr»)'''
+			MulOrDiv: '''(«e.left.stringRepr» «e.op» «e.right.stringRepr»)'''
+			Comparison: '''(«e.left.stringRepr» «e.op» «e.right.stringRepr»)'''
+			Equality: '''(«e.left.stringRepr» «e.op» «e.right.stringRepr»)'''
+			And: '''(«e.left.stringRepr» && «e.right.stringRepr»)'''
+			Or: '''(«e.left.stringRepr» || «e.right.stringRepr»)'''
+			Not: '''(!«e.expression.stringRepr»)'''
 			IntConstant: '''«e.value»'''
 			StringConstant: '''«e.value»'''
 			BoolConstant: '''«e.value»'''
@@ -95,7 +107,29 @@ class ExpressionsParsingTest {
 		"1+(5-9)".assertRepr("(1 + (5 - 9))")
 	}
 
-	@Test def void bla() {
+	@Test def void test_string() {
 		"true + 'treu'".assertRepr("(true + treu)")
+	}
+
+	@Test def void testPlusMulPrecedence() {
+		"10 + 5 * 2 - 5 / 1".assertRepr("((10 + (5 * 2)) - (5 / 1))")
+	}
+
+////This test should pass i. e. be Null	
+//	@Test def void missing_right_op(){
+//		"eval 58+".parse.assertNull
+//	}
+	@Test def void test_and() {
+		"eval 1 ? 5".parse.assertNotNull
+	}
+
+	@Test def void test_precedences() {
+		"!true||false&&1>(1/3+5*2)".assertRepr("((!true) || (false && (1 > ((1 / 3) + (5 * 2)))))")
+	}
+
+	@Test def void forward_references() {
+		'''
+			var i = i + 1
+		'''.parse.assertNotNull
 	}
 }

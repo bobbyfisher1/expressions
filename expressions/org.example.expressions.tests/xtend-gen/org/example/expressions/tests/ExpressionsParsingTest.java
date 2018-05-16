@@ -14,11 +14,17 @@ import org.eclipse.xtext.xbase.lib.IterableExtensions;
 import org.eclipse.xtext.xbase.lib.ObjectExtensions;
 import org.eclipse.xtext.xbase.lib.Procedures.Procedure1;
 import org.example.expressions.expressions.AbstractElement;
+import org.example.expressions.expressions.And;
 import org.example.expressions.expressions.BoolConstant;
+import org.example.expressions.expressions.Comparison;
+import org.example.expressions.expressions.Equality;
 import org.example.expressions.expressions.Expression;
 import org.example.expressions.expressions.ExpressionsModel;
 import org.example.expressions.expressions.IntConstant;
 import org.example.expressions.expressions.Minus;
+import org.example.expressions.expressions.MulOrDiv;
+import org.example.expressions.expressions.Not;
+import org.example.expressions.expressions.Or;
 import org.example.expressions.expressions.Plus;
 import org.example.expressions.expressions.StringConstant;
 import org.example.expressions.expressions.VariableRef;
@@ -120,6 +126,96 @@ public class ExpressionsParsingTest {
       }
     }
     if (!_matched) {
+      if (e instanceof MulOrDiv) {
+        _matched=true;
+        StringConcatenation _builder = new StringConcatenation();
+        _builder.append("(");
+        String _stringRepr = this.stringRepr(((MulOrDiv)e).getLeft());
+        _builder.append(_stringRepr);
+        _builder.append(" ");
+        String _op = ((MulOrDiv)e).getOp();
+        _builder.append(_op);
+        _builder.append(" ");
+        String _stringRepr_1 = this.stringRepr(((MulOrDiv)e).getRight());
+        _builder.append(_stringRepr_1);
+        _builder.append(")");
+        _switchResult = _builder.toString();
+      }
+    }
+    if (!_matched) {
+      if (e instanceof Comparison) {
+        _matched=true;
+        StringConcatenation _builder = new StringConcatenation();
+        _builder.append("(");
+        String _stringRepr = this.stringRepr(((Comparison)e).getLeft());
+        _builder.append(_stringRepr);
+        _builder.append(" ");
+        String _op = ((Comparison)e).getOp();
+        _builder.append(_op);
+        _builder.append(" ");
+        String _stringRepr_1 = this.stringRepr(((Comparison)e).getRight());
+        _builder.append(_stringRepr_1);
+        _builder.append(")");
+        _switchResult = _builder.toString();
+      }
+    }
+    if (!_matched) {
+      if (e instanceof Equality) {
+        _matched=true;
+        StringConcatenation _builder = new StringConcatenation();
+        _builder.append("(");
+        String _stringRepr = this.stringRepr(((Equality)e).getLeft());
+        _builder.append(_stringRepr);
+        _builder.append(" ");
+        String _op = ((Equality)e).getOp();
+        _builder.append(_op);
+        _builder.append(" ");
+        String _stringRepr_1 = this.stringRepr(((Equality)e).getRight());
+        _builder.append(_stringRepr_1);
+        _builder.append(")");
+        _switchResult = _builder.toString();
+      }
+    }
+    if (!_matched) {
+      if (e instanceof And) {
+        _matched=true;
+        StringConcatenation _builder = new StringConcatenation();
+        _builder.append("(");
+        String _stringRepr = this.stringRepr(((And)e).getLeft());
+        _builder.append(_stringRepr);
+        _builder.append(" && ");
+        String _stringRepr_1 = this.stringRepr(((And)e).getRight());
+        _builder.append(_stringRepr_1);
+        _builder.append(")");
+        _switchResult = _builder.toString();
+      }
+    }
+    if (!_matched) {
+      if (e instanceof Or) {
+        _matched=true;
+        StringConcatenation _builder = new StringConcatenation();
+        _builder.append("(");
+        String _stringRepr = this.stringRepr(((Or)e).getLeft());
+        _builder.append(_stringRepr);
+        _builder.append(" || ");
+        String _stringRepr_1 = this.stringRepr(((Or)e).getRight());
+        _builder.append(_stringRepr_1);
+        _builder.append(")");
+        _switchResult = _builder.toString();
+      }
+    }
+    if (!_matched) {
+      if (e instanceof Not) {
+        _matched=true;
+        StringConcatenation _builder = new StringConcatenation();
+        _builder.append("(!");
+        String _stringRepr = this.stringRepr(((Not)e).getExpression());
+        _builder.append(_stringRepr);
+        _builder.append(")");
+        _switchResult = _builder.toString();
+      }
+    }
+    if (!_matched) {
       if (e instanceof IntConstant) {
         _matched=true;
         StringConcatenation _builder = new StringConcatenation();
@@ -211,7 +307,38 @@ public class ExpressionsParsingTest {
   }
   
   @Test
-  public void bla() {
+  public void test_string() {
     this.assertRepr("true + \'treu\'", "(true + treu)");
+  }
+  
+  @Test
+  public void testPlusMulPrecedence() {
+    this.assertRepr("10 + 5 * 2 - 5 / 1", "((10 + (5 * 2)) - (5 / 1))");
+  }
+  
+  @Test
+  public void test_and() {
+    try {
+      Assert.assertNotNull(this._parseHelper.parse("eval 1 ? 5"));
+    } catch (Throwable _e) {
+      throw Exceptions.sneakyThrow(_e);
+    }
+  }
+  
+  @Test
+  public void test_precedences() {
+    this.assertRepr("!true||false&&1>(1/3+5*2)", "((!true) || (false && (1 > ((1 / 3) + (5 * 2)))))");
+  }
+  
+  @Test
+  public void forward_references() {
+    try {
+      StringConcatenation _builder = new StringConcatenation();
+      _builder.append("var i = i + 1");
+      _builder.newLine();
+      Assert.assertNotNull(this._parseHelper.parse(_builder));
+    } catch (Throwable _e) {
+      throw Exceptions.sneakyThrow(_e);
+    }
   }
 }
