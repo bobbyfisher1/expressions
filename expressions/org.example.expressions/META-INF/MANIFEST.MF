@@ -30,6 +30,7 @@ Export-Package: org.example.expressions;uses:="org.example.expressions.expressio
    org.eclipse.emf.common.notify.impl,
    org.eclipse.emf.ecore.util",
  org.example.expressions.generator;uses:="org.eclipse.xtext.generator,org.eclipse.emf.ecore.resource",
+ org.example.expressions.interpreter,
  org.example.expressions.parser.antlr;uses:="org.example.expressions.parser.antlr.internal,org.eclipse.xtext.parser.antlr,org.example.expressions.services",
  org.example.expressions.parser.antlr.internal;
   uses:="org.eclipse.emf.ecore,

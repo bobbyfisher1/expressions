@@ -24,7 +24,6 @@ class ExpressionsTypeComputer {
 	public static val BOOL_TYPE = new BoolType
 
 	@Inject extension ExpressionsModelUtil
-
 	@Inject IResourceScopeCache cache
 
 	def isStringType(ExpressionsType type) { type === STRING_TYPE }
@@ -48,7 +47,11 @@ class ExpressionsTypeComputer {
 		}
 	}
 
-// null-safe operatior ?. used as the type computer can also be used on a non-complete model
+	/* 
+	 * null-safe operatior ?. 
+	 * used as the type computer can also be used 
+	 *  on a non-complete model
+	 */
 	def dispatch ExpressionsType typeFor(Plus e) {
 		val leftType = e.left.typeFor
 		val rightType = e.right?.typeFor
@@ -66,7 +69,11 @@ class ExpressionsTypeComputer {
 	def dispatch ExpressionsType typeFor(VariableRef varRef) {
 		if (!varRef.isVariableDefinedBefore)
 			return null
-		else
-			return varRef.variable.expression.typeFor
+		else {
+			val variable = varRef.variable
+			return cache.get("type" -> variable, variable.eResource) [
+				variable.expression.typeFor
+			]
+		}
 	}
 }

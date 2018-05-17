@@ -5,7 +5,9 @@ package org.example.expressions.ui;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor;
+import org.eclipse.xtext.ui.editor.hover.IEObjectHoverProvider;
 import org.example.expressions.ui.AbstractExpressionsUiModule;
+import org.example.expressions.ui.hover.ExpressionsEObjectHoverProvider;
 
 /**
  * Use this class to register components to be used within the Eclipse IDE.
@@ -13,6 +15,10 @@ import org.example.expressions.ui.AbstractExpressionsUiModule;
 @FinalFieldsConstructor
 @SuppressWarnings("all")
 public class ExpressionsUiModule extends AbstractExpressionsUiModule {
+  public Class<? extends IEObjectHoverProvider> bindIEObjectHoverProvider() {
+    return ExpressionsEObjectHoverProvider.class;
+  }
+  
   public ExpressionsUiModule(final AbstractUIPlugin plugin) {
     super(plugin);
   }

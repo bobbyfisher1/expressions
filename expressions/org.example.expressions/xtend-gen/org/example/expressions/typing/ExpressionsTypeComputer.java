@@ -1,9 +1,11 @@
 package org.example.expressions.typing;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import java.util.Arrays;
 import org.eclipse.xtext.util.IResourceScopeCache;
 import org.eclipse.xtext.xbase.lib.Extension;
+import org.eclipse.xtext.xbase.lib.Pair;
 import org.example.expressions.ExpressionsModelUtil;
 import org.example.expressions.expressions.And;
 import org.example.expressions.expressions.BoolConstant;
@@ -17,6 +19,7 @@ import org.example.expressions.expressions.Not;
 import org.example.expressions.expressions.Or;
 import org.example.expressions.expressions.Plus;
 import org.example.expressions.expressions.StringConstant;
+import org.example.expressions.expressions.Variable;
 import org.example.expressions.expressions.VariableRef;
 import org.example.expressions.typing.BoolType;
 import org.example.expressions.typing.ExpressionsType;
@@ -114,6 +117,11 @@ public class ExpressionsTypeComputer {
     return _switchResult;
   }
   
+  /**
+   * null-safe operatior ?.
+   * used as the type computer can also be used
+   *  on a non-complete model
+   */
   protected ExpressionsType _typeFor(final Plus e) {
     ExpressionsType _xblockexpression = null;
     {
@@ -146,7 +154,12 @@ public class ExpressionsTypeComputer {
     if (_not) {
       return null;
     } else {
-      return this.typeFor(varRef.getVariable().getExpression());
+      final Variable variable = varRef.getVariable();
+      Pair<String, Variable> _mappedTo = Pair.<String, Variable>of("type", variable);
+      final Provider<ExpressionsType> _function = () -> {
+        return this.typeFor(variable.getExpression());
+      };
+      return this.cache.<ExpressionsType>get(_mappedTo, variable.eResource(), _function);
     }
   }
   
