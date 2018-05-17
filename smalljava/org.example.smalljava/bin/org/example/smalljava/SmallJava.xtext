@@ -1,0 +1,9 @@
+grammar org.example.smalljava.SmallJava with org.eclipse.xtext.common.Terminals
+
+generate smallJava "http://www.example.org/smalljava/SmallJava"
+
+Model:
+	greetings+=Greeting*;
+	
+Greeting:
+	'Hello' name=ID '!';
