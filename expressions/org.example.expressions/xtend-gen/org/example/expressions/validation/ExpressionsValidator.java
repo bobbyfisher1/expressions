@@ -3,13 +3,26 @@
  */
 package org.example.expressions.validation;
 
+import com.google.common.base.Objects;
 import com.google.inject.Inject;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.xtext.validation.Check;
 import org.eclipse.xtext.xbase.lib.Extension;
 import org.example.expressions.ExpressionsModelUtil;
+import org.example.expressions.expressions.And;
+import org.example.expressions.expressions.Comparison;
+import org.example.expressions.expressions.Equality;
+import org.example.expressions.expressions.Expression;
 import org.example.expressions.expressions.ExpressionsPackage;
+import org.example.expressions.expressions.Minus;
+import org.example.expressions.expressions.MulOrDiv;
+import org.example.expressions.expressions.Not;
+import org.example.expressions.expressions.Or;
+import org.example.expressions.expressions.Plus;
 import org.example.expressions.expressions.Variable;
 import org.example.expressions.expressions.VariableRef;
+import org.example.expressions.typing.ExpressionsType;
+import org.example.expressions.typing.ExpressionsTypeComputer;
 import org.example.expressions.validation.AbstractExpressionsValidator;
 
 /**
@@ -23,9 +36,15 @@ public class ExpressionsValidator extends AbstractExpressionsValidator {
   
   public final static String FORWARD_REFERENCE = (ExpressionsValidator.ISSUE_CODE_PREFIX + "ForwardReference");
   
+  public final static String TYPE_MISMATCH = (ExpressionsValidator.ISSUE_CODE_PREFIX + "TypeMismatch");
+  
   @Inject
   @Extension
   private ExpressionsModelUtil _expressionsModelUtil;
+  
+  @Inject
+  @Extension
+  private ExpressionsTypeComputer _expressionsTypeComputer;
   
   @Check
   public void checkForwardReference(final VariableRef varRef) {
@@ -38,6 +57,103 @@ public class ExpressionsValidator extends AbstractExpressionsValidator {
       String _plus_1 = (_plus + "\'");
       this.error(_plus_1, 
         ExpressionsPackage.eINSTANCE.getVariableRef_Variable(), ExpressionsValidator.FORWARD_REFERENCE, variable.getName());
+    }
+  }
+  
+  private void checkExpectedBoolean(final Expression exp, final EReference reference) {
+    this.checkExpectedType(exp, ExpressionsTypeComputer.BOOL_TYPE, reference);
+  }
+  
+  private void checkExpectedInt(final Expression exp, final EReference reference) {
+    this.checkExpectedType(exp, ExpressionsTypeComputer.INT_TYPE, reference);
+  }
+  
+  private void checkExpectedType(final Expression exp, final ExpressionsType expectedType, final EReference reference) {
+    final ExpressionsType actualType = this.getTypeAndCheckNotNull(exp, reference);
+    boolean _notEquals = (!Objects.equal(actualType, expectedType));
+    if (_notEquals) {
+      this.error(((("expected " + expectedType) + " type, but was ") + actualType), reference, ExpressionsValidator.TYPE_MISMATCH);
+    }
+  }
+  
+  private ExpressionsType getTypeAndCheckNotNull(final Expression exp, final EReference reference) {
+    ExpressionsType _typeFor = null;
+    if (exp!=null) {
+      _typeFor=this._expressionsTypeComputer.typeFor(exp);
+    }
+    ExpressionsType type = _typeFor;
+    if ((type == null)) {
+      this.error("null type", reference, ExpressionsValidator.TYPE_MISMATCH);
+    }
+    return type;
+  }
+  
+  private void checkExpectedSame(final ExpressionsType left, final ExpressionsType right) {
+    if ((((right != null) && (left != null)) && (!Objects.equal(right, left)))) {
+      this.error(((("expected the same type, but was " + left) + ", ") + right), 
+        ExpressionsPackage.Literals.EQUALITY.getEIDAttribute(), ExpressionsValidator.TYPE_MISMATCH);
+    }
+  }
+  
+  private void checkNotBoolean(final ExpressionsType type, final EReference reference) {
+    boolean _isBoolType = this._expressionsTypeComputer.isBoolType(type);
+    if (_isBoolType) {
+      this.error("cannot be boolean", reference, ExpressionsValidator.TYPE_MISMATCH);
+    }
+  }
+  
+  @Check
+  public void checkType(final Not not) {
+    this.checkExpectedBoolean(not.getExpression(), ExpressionsPackage.Literals.NOT__EXPRESSION);
+  }
+  
+  @Check
+  public void checkType(final And and) {
+    this.checkExpectedBoolean(and.getLeft(), ExpressionsPackage.Literals.AND__LEFT);
+    this.checkExpectedBoolean(and.getRight(), ExpressionsPackage.Literals.AND__RIGHT);
+  }
+  
+  @Check
+  public void checkType(final Or or) {
+    this.checkExpectedBoolean(or.getLeft(), ExpressionsPackage.Literals.OR__LEFT);
+    this.checkExpectedBoolean(or.getRight(), ExpressionsPackage.Literals.OR__RIGHT);
+  }
+  
+  @Check
+  public void checkType(final MulOrDiv mulOrDiv) {
+    this.checkExpectedInt(mulOrDiv.getLeft(), ExpressionsPackage.Literals.MUL_OR_DIV__LEFT);
+    this.checkExpectedInt(mulOrDiv.getRight(), ExpressionsPackage.Literals.MUL_OR_DIV__RIGHT);
+  }
+  
+  @Check
+  public void checkType(final Minus minus) {
+    this.checkExpectedInt(minus.getLeft(), ExpressionsPackage.Literals.MINUS__LEFT);
+    this.checkExpectedInt(minus.getRight(), ExpressionsPackage.Literals.MINUS__RIGHT);
+  }
+  
+  @Check
+  public void checkType(final Equality equality) {
+    final ExpressionsType leftType = this.getTypeAndCheckNotNull(equality.getLeft(), ExpressionsPackage.Literals.EQUALITY__LEFT);
+    final ExpressionsType rightType = this.getTypeAndCheckNotNull(equality.getRight(), ExpressionsPackage.Literals.EQUALITY__RIGHT);
+    this.checkExpectedSame(leftType, rightType);
+  }
+  
+  @Check
+  public void checkType(final Comparison comparison) {
+    final ExpressionsType leftType = this.getTypeAndCheckNotNull(comparison.getLeft(), ExpressionsPackage.Literals.COMPARISON__LEFT);
+    final ExpressionsType rightType = this.getTypeAndCheckNotNull(comparison.getRight(), ExpressionsPackage.Literals.COMPARISON__RIGHT);
+    this.checkExpectedSame(leftType, rightType);
+    this.checkNotBoolean(leftType, ExpressionsPackage.Literals.COMPARISON__LEFT);
+    this.checkNotBoolean(rightType, ExpressionsPackage.Literals.COMPARISON__RIGHT);
+  }
+  
+  @Check
+  public void checkType(final Plus plus) {
+    final ExpressionsType leftType = this.getTypeAndCheckNotNull(plus.getLeft(), ExpressionsPackage.Literals.PLUS__LEFT);
+    final ExpressionsType rightType = this.getTypeAndCheckNotNull(plus.getRight(), ExpressionsPackage.Literals.PLUS__RIGHT);
+    if (((this._expressionsTypeComputer.isIntType(leftType) || this._expressionsTypeComputer.isIntType(rightType)) || ((!this._expressionsTypeComputer.isStringType(leftType)) && (!this._expressionsTypeComputer.isStringType(rightType))))) {
+      this.checkNotBoolean(leftType, ExpressionsPackage.Literals.PLUS__LEFT);
+      this.checkNotBoolean(rightType, ExpressionsPackage.Literals.PLUS__RIGHT);
     }
   }
 }
