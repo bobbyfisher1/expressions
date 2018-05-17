@@ -1,0 +1,5 @@
+var i = 0 
+
+var j = ( i > 0 && ( 's' < ( i + 9 ) ) )
+
+eval j || true
